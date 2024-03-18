@@ -3,15 +3,23 @@ import binascii
 import math
 from functools import reduce
 from os import urandom
-from sha3 import keccak_256
+from Cryptodome.Hash import SHA256
 
-quote = lambda x: '"' + str(x) + '"'
+
+def quote(x): return '"' + str(x) + '"'
+
+
 quotemany = lambda *x: ','.join(map(quote, x))
-quotelist = lambda x: '[' + quotemany(*x) + ']'
+def quotelist(x): return '[' + quotemany(*x) + ']'
 
-safe_ord = ord if sys.version_info.major == 2 else lambda x: x if isinstance(x, int) else ord(x)
 
-bytes_to_int = lambda x: reduce(lambda o, b: (o << 8) + safe_ord(b), [0] + list(x))
+safe_ord = ord if sys.version_info.major == 2 else lambda x: x if isinstance(
+    x, int) else ord(x)
+
+
+def bytes_to_int(x): return reduce(
+    lambda o, b: (o << 8) + safe_ord(b), [0] + list(x))
+
 
 def packl(lnum):
     if lnum == 0:
@@ -21,33 +29,41 @@ def packl(lnum):
         s = '0' + s
     return binascii.unhexlify(s)
 
+
 int_to_big_endian = packl
 
-zpad = lambda x, l: b'\x00' * max(0, l - len(x)) + x
 
-tobe256 = lambda v: zpad(int_to_big_endian(v), 32)
+def zpad(x, l): return b'\x00' * max(0, l - len(x)) + x
+
+
+def tobe256(v): return zpad(int_to_big_endian(v), 32)
+
 
 def hashs(*x):
     data = b''.join(map(tobe256, x))
-    return bytes_to_int(keccak_256(data).digest())
-
-randb256 = lambda: urandom(32)
-
-
-bit_clear = lambda n, b: n ^ (1<<(b-1)) if n & 1<<(b-1) else n
-
-bit_set = lambda n, b: n | (1<<(b-1))
-
-bit_test = lambda n, b: 0 != (n & (1<<(b-1)))
+    # return bytes_to_int(keccak_256(data).digest())
+    return bytes_to_int(SHA256.new(data).digest())
 
 
-def powmod(a,b,n):
+def randb256(): return urandom(32)
+
+
+def bit_clear(n, b): return n ^ (1 << (b-1)) if n & 1 << (b-1) else n
+
+
+def bit_set(n, b): return n | (1 << (b-1))
+
+
+def bit_test(n, b): return 0 != (n & (1 << (b-1)))
+
+
+def powmod(a, b, n):
     c = 0
     f = 1
     k = int(math.log(b, 2))
     while k >= 0:
         c *= 2
-        f = (f*f)%n
+        f = (f*f) % n
         if b & (1 << k):
             c += 1
             f = (f*a) % n
