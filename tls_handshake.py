@@ -276,7 +276,7 @@ class Handshake:
         #########################
         # THIS IS TO BE ASSESSED
         #########################
-        #first_transcript = self.transcript
+        # first_transcript = self.transcript
         shelo = self.process_handshake_header(
             tls_constants.SHELO_TYPE, shelo_msg)
         msg_len = len(shelo)
@@ -441,6 +441,9 @@ class Handshake:
                 self.server_cert_string)
         if sig_type == tls_constants.ECDSA_SECP384R1_SHA384:
             server_public_key = tls_crypto.get_ecdsa_pk_from_cert(
+                self.server_cert_string)
+        if sig_type == tls_constants.RING_SECP256K1_SHA256:
+            server_public_key = tls_crypto.get_ring_pk_from_cert(
                 self.server_cert_string)
         transcript_hash = tls_crypto.tls_transcript_hash(
             self.csuite, self.transcript)

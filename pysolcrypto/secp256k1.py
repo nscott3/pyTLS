@@ -5,7 +5,7 @@ from functools import reduce
 # tinyec
 import tinyec.ec as ec
 import tinyec.registry as reg
-from utils import hashs, tobe256
+from .utils import hashs, int_to_32_bytes, tobe256, bytes_to_ints
 import secrets
 # from .ecdsa import pubkey_to_ethaddr
 
@@ -45,3 +45,26 @@ def negp(x): return (x[0], -x[1])
 
 # def hackymul(x, y, scalar, m=0):
 #     return pubkey_to_ethaddr(hackymul_raw(x, y, scalar, m))
+
+def construct_signature(pkeys, tees, cees):
+    pkeys_bytes = b''.join([int_to_32_bytes(
+        pkey.x) + int_to_32_bytes(pkey.y) for pkey in pkeys])
+    tees_bytes = b''.join([int_to_32_bytes(tee) for tee in tees])
+    cees_bytes = int_to_32_bytes(cees[-1])
+
+    signature = b''.join([pkeys_bytes, tees_bytes, cees_bytes])
+    return signature
+
+
+def deconstruct_signature(signature):
+    cees_bytes, signature = signature[-32:], signature[:-32]
+
+    split_idx = len(signature)*2//3
+    pkeys_bytes, tees_bytes = signature[:split_idx], signature[split_idx:]
+
+    pkeys_ints, tees = bytes_to_ints(pkeys_bytes), bytes_to_ints(tees_bytes)
+    seed = bytes_to_int(cees_bytes)
+    pkeys = [ec.Point(curve, pkeys_ints[i], pkeys_ints[i+1])
+             for i in range(0, len(pkeys_ints), 2)]
+
+    return pkeys, tees, seed

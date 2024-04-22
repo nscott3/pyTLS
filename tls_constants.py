@@ -6,6 +6,7 @@ Contains the flags needed throughout the handshake, alert and record protocols
 '''
 
 from Cryptodome.PublicKey import RSA, ECC
+from pysolcrypto.utils import decode_pem
 
 INVALID_TYPE = 0
 CHANGE_TYPE = 20
@@ -193,18 +194,21 @@ RSA2048_SHA384_CERT_FILE = "./rsa_2048_sha_384_certificate.pem"
 RSA2048_KEY_FILE = "./rsa_2048_privkey.pem"
 SECP384R1_SHA384_CERT_FILE = "./secp384r1_sha_384_certificate.pem"
 SECP384R1_KEY_FILE = "secp384r1_privkey.pem"
+SECP256K1_SHA256_CERT_FILE = "./secp256k1_sha_256_certificate.pem"
 SECP256K1_KEY_FILE = "secp256k1_privkey.pem"
 RSA2048_KEY = RSA.import_key(open(RSA2048_KEY_FILE).read())
 RSA2048_SHA256_CERT = open(RSA2048_SHA256_CERT_FILE).read()
 RSA2048_SHA384_CERT = open(RSA2048_SHA384_CERT_FILE).read()
 SECP384R1_SHA384_CERT = open(SECP384R1_SHA384_CERT_FILE).read()
 SECP384R1_KEY = ECC.import_key(open(SECP384R1_KEY_FILE).read())
-SECP256K1_KEY = ECC.import_key(open(SECP256K1_KEY_FILE).read())
+SECP256K1_SHA256_CERT = open(SECP256K1_SHA256_CERT_FILE).read()
+SECP256K1_KEY = decode_pem(open(SECP256K1_KEY_FILE).read())
 
 SERVER_SUPPORTED_CERTIFICATES = {
     RSA_PKCS1_SHA256: RSA2048_SHA256_CERT,
     RSA_PKCS1_SHA384: RSA2048_SHA384_CERT,
-    ECDSA_SECP384R1_SHA384: SECP384R1_SHA384_CERT
+    ECDSA_SECP384R1_SHA384: SECP384R1_SHA384_CERT,
+    RING_SECP256K1_SHA256: SECP256K1_SHA256_CERT
 }
 
 # TLS ALERT VALUES

@@ -1,7 +1,7 @@
 from __future__ import print_function
 
-from secp256k1 import hashsn, sbmul, hashpn, submodn, mulmodn
-from utils import hashs
+from .secp256k1 import hashsn, sbmul, hashpn, submodn, mulmodn
+from .utils import hashs
 
 
 def _hash_points_and_message(a, b, m): return hashsn(hashpn(a, b), m)

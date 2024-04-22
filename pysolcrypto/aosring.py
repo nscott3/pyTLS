@@ -1,8 +1,10 @@
 from __future__ import print_function
 
-from secp256k1 import randsn, sbmul, hashpn, submodn, addmodn, mulmodn
-from schnorr import schnorr_calc
-from utils import quotelist, quote
+from .secp256k1 import construct_signature, deconstruct_signature, randsn, sbmul, hashpn, submodn, addmodn, mulmodn
+from .schnorr import schnorr_calc
+from .utils import bytes_to_ints, quotelist, quote, int_to_32_bytes, bytes_to_int
+import tinyec.ec as ec
+import tinyec.registry as reg
 from random import randint
 import secrets
 
@@ -31,12 +33,20 @@ For more information on turning this scheme into a linkable ring:
  - https://eprint.iacr.org/2004/027.pdf
 """
 
+curve = reg.get_curve('secp256k1')
+
 
 def aosring_randkeys(n=4):
     skeys = [randsn() for _ in range(0, n)]
     pkeys = [sbmul(sk) for sk in skeys]
     i = randint(0, n-1)
     return pkeys, (pkeys[i], skeys[i])
+
+
+def aosring_prepkeys(mysk):
+    skeys = [randsn(), mysk]
+    pkeys = [sbmul(sk) for sk in skeys]
+    return pkeys, (pkeys[1], skeys[1])
 
 
 def aosring_sign(pkeys, mypair, tees=None, alpha=None, message=None):
@@ -63,10 +73,12 @@ def aosring_sign(pkeys, mypair, tees=None, alpha=None, message=None):
     alpha_gap = submodn(alpha, cees[myidx-1])
     tees[myidx] = addmodn(tees[myidx], mulmodn(mysk, alpha_gap))
 
-    return pkeys, tees, cees[-1]
+    return construct_signature(pkeys, tees, cees)
 
 
-def aosring_check(pkeys, tees, seed, message=None):
+def aosring_check(signature, message=None):
+    pkeys, tees, seed = deconstruct_signature(signature)
+
     assert len(pkeys) > 0
     assert len(tees) == len(pkeys)
     message = message or hashpn(*pkeys)
